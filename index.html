@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Japanese Vocabulary Practice</title>
+<style>
+  @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f4f8;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+  }
+  h1, h2, h3 { color: #444; }
+  input { padding: 10px; font-size: 16px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; width: 80%; }
+  button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    margin: 5px;
+    transition: 0.3s;
+  }
+  button:hover { opacity: 0.9; }
+  .addBtn { background: #4CAF50; color: #fff; }
+  .quizBtn {width:100%; background: #673AB7; color: #fff; }
+  .endBtn { background: #E91E63; color: #fff; }
+
+  #wordListContainer {
+    margin-top: 10px;
+    text-align: left;
+  }
+  #wordListContainer h3 {
+  margin-bottom: 5px;
+  text-align: center; /* Center the heading */
+}
+  #wordList {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .wordItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+  }
+  .wordItem i {
+    cursor: pointer;
+    margin-left: 10px;
+    color: #666;
+    transition: 0.3s;
+  }
+  .wordItem i:hover { color: #000; }
+  #noWords {
+    text-align: center;
+    font-size: 14px;
+    color: #888;
+    padding: 10px;
+  }
+  #quizSection { display: none; margin-top: 20px; text-align: center; }
+  #feedback { font-weight: bold; margin-top: 10px; }
+  #score { margin-top: 10px; font-size: 18px; font-weight: bold; }
+  #result { display: none; margin-top: 20px; text-align: center; }
+  #result h3 { text-align: center; }
+  #result ul { list-style: disc; margin-left: 20px; text-align: left; display: inline-block; }
+  #result button { display: block; margin: 15px auto 0 auto; }
+
+  /* Result section styling */
+#result {
+  display: none;
+  margin-top: 20px;
+  text-align: center;
+}
+
+#result h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+#finalScore {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+#result p {
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+/* Wrong answers table */
+#wrongTable {
+  width: 100%;
+  margin: 10px auto;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+#resultTimer{
+  font-size: 12px;
+}
+
+#wrongTable th, #wrongTable td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+#wrongTable th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+#wrongTable td {
+  background-color: #fff;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Japanese Vocabulary Practice</h1>
+  <ul id="info" style="font-size: 14px; color: #555; margin-top: 5px;text-align:start">
+    <li>To add a <strong>single word</strong>: type one Romaji and one English word.</li>
+    <li>To add <strong>multiple words</strong> at once: separate each word with a comma. 
+    Examples:
+    <ul>
+    <li>Romaji: kyoushitsu, shokudou, jimusho</li>
+   <li>English: classroom, cafeteria, office</li>
+   </ul>
+
+    </li>
+    
+  </ul>
+
+  <div id="addWords">
+    <input type="text" id="romaji" placeholder="Romaji">
+    <input type="text" id="english" placeholder="English">
+    <button class="addBtn" onclick="addWord()">Add Word</button>
+
+    
+
+    <div id="wordListContainer">
+      <h3 >Word List</h3>
+      <div id="wordList"></div>
+      <div id="noWords">No vocab words</div>
+    </div>
+<br/>
+    <button class="quizBtn" id="startBtn" onclick="startQuiz()" style="display:none;">Start Practice</button>
+  </div>
+
+  <div id="quizSection">
+    <div id="questionContainer" style="display:flex; justify-content:center; align-items:center; gap:10px;">
+  <p id="question" style="margin:0;"></p>
+  <i class="fas fa-volume-up" id="playQuestion" style="cursor:pointer; color:#673AB7;" title="Play"></i>
+</div>
+
+    <input type="text" id="answer" placeholder="Type your answer here">
+    <p id="feedback"></p>
+    <p id="score"></p>
+    <p id="timer" style="font-weight:bold; margin-top:10px;">Time: 00:00</p>
+    <button class="endBtn" onclick="endPractice()">End Practice</button>
+  </div>
+
+  <div id="result">
+    <b id="finalScore"></b>
+    <p id="resultTimer"></p>
+    <b id="allcorrect"></b><br/>
+    <div id="wrongss"> 
+    <h4> Wrong Answers</h4>
+    <table id="wrongTable" border="1" style="border-collapse:collapse; margin: 10px auto; width: 90%; text-align:center;">
+  <thead>
+    <tr>
+      <th>Translate</th>
+      <th>Question</th>
+      <th>Your answer</th>
+      <th>Correct</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+    <ul id="wrongList"></ul>
+    <button class="quizBtn" onclick="restart()">Restart Practice</button>
+  </div>
+</div>
+
+<script>
+let vocab = JSON.parse(localStorage.getItem("vocab")) || [];
+let currentWord;
+let score = 0;
+let total = 0;
+let wrongAnswers = [];
+let timerInterval;
+let secondsElapsed = 0;
+
+
+// Romaji → Hiragana map (including compound sounds)
+const romajiToHiraganaMap = {
+  'a':'あ','i':'い','u':'う','e':'え','o':'お',
+  'ka':'か','ki':'き','ku':'く','ke':'け','ko':'こ','kya':'きゃ','kyu':'きゅ','kyo':'きょ',
+  'sa':'さ','shi':'し','su':'す','se':'せ','so':'そ','sha':'しゃ','shu':'しゅ','sho':'しょ',
+  'ta':'た','chi':'ち','tsu':'つ','te':'て','to':'と','cha':'ちゃ','chu':'ちゅ','cho':'ちょ',
+  'na':'な','ni':'に','nu':'ぬ','ne':'ね','no':'の','nya':'にゃ','nyu':'にゅ','nyo':'にょ',
+  'ha':'は','hi':'ひ','fu':'ふ','he':'へ','ho':'ほ','hya':'ひゃ','hyu':'ひゅ','hyo':'ひょ',
+  'ma':'ま','mi':'み','mu':'む','me':'め','mo':'も','mya':'みゃ','myu':'みゅ','myo':'みょ',
+  'ya':'や','yu':'ゆ','yo':'よ',
+  'ra':'ら','ri':'り','ru':'る','re':'れ','ro':'ろ','rya':'りゃ','ryu':'りゅ','ryo':'りょ',
+  'wa':'わ','wo':'を','n':'ん',
+  'ga':'が','gi':'ぎ','gu':'ぐ','ge':'げ','go':'ご','gya':'ぎゃ','gyu':'ぎゅ','gyo':'ぎょ',
+  'za':'ざ','ji':'じ','zu':'ず','ze':'ぜ','zo':'ぞ','ja':'じゃ','ju':'じゅ','jo':'じょ',
+  'da':'だ','di':'ぢ','du':'づ','de':'で','do':'ど',
+  'ba':'ば','bi':'び','bu':'ぶ','be':'べ','bo':'ぼ','bya':'びゃ','byu':'びゅ','byo':'びょ',
+  'pa':'ぱ','pi':'ぴ','pu':'ぷ','pe':'ぺ','po':'ぽ','pya':'ぴゃ','pyu':'ぴゅ','pyo':'ぴょ'
+};
+
+const questionTypeMap = {
+  0: "EN → Romaji",
+  1: "Romaji → EN",
+  2: "Hiragana → EN",
+  3: "Katakana → EN",
+  4: "Hiragana → Romaji",
+  5: "Katakana → Romaji"
+};
+
+
+// Romaji → Hiragana conversion (handles small tsu for double consonants)
+function romajiToHiragana(romaji) {
+  romaji = romaji.toLowerCase().trim();
+  let result = "";
+  let i = 0;
+  while(i < romaji.length){
+    if(i+1 < romaji.length && romaji[i] === romaji[i+1] && romaji[i].match(/[bcdfghjklmnpqrstvwxyz]/i)){
+      result += 'っ'; i++; continue;
+    }
+    if(i+2 < romaji.length && romajiToHiraganaMap[romaji.substring(i,i+3)]){
+      result += romajiToHiraganaMap[romaji.substring(i,i+3)]; i+=3;
+    } else if(i+1 < romaji.length && romajiToHiraganaMap[romaji.substring(i,i+2)]){
+      result += romajiToHiraganaMap[romaji.substring(i,i+2)]; i+=2;
+    } else if(romajiToHiraganaMap[romaji[i]]){
+      result += romajiToHiraganaMap[romaji[i]]; i++;
+    } else { result += romaji[i]; i++; }
+  }
+  return result;
+}
+
+// Hiragana → Katakana
+function hiraganaToKatakana(hira){
+  return hira.replace(/[\u3041-\u3096]/g, ch => String.fromCharCode(ch.charCodeAt(0)+0x60));
+}
+
+function pronounceWord(input) {
+  let text = "";
+  
+  if(typeof input === "number"){ 
+    // called from word list by index
+    text = vocab[input].hiragana; 
+  } else { 
+    // called from quiz by string
+    text = input; 
+  }
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "ja-JP"; // Japanese
+  window.speechSynthesis.speak(utterance);
+}
+
+
+document.getElementById("playQuestion").addEventListener("click", function(){
+  if(currentQuestionText){
+    const utterance = new SpeechSynthesisUtterance(currentQuestionText);
+    utterance.lang = "ja-JP";
+    window.speechSynthesis.speak(utterance);
+  }
+});
+
+
+// Render the word list and update start button visibility
+function renderWordList() {
+  const listDiv = document.getElementById("wordList");
+  const noWordsDiv = document.getElementById("noWords");
+  const startBtn = document.getElementById("startBtn");
+
+  if(vocab.length === 0){
+    listDiv.style.display = "none";
+    noWordsDiv.style.display = "block";
+    startBtn.style.display = "none";
+  } else {
+    listDiv.style.display = "block";
+    noWordsDiv.style.display = "none";
+    startBtn.style.display = "inline-block";
+    listDiv.innerHTML = "";
+    vocab.forEach((w, index) => {
+  const div = document.createElement("div");
+  div.className = "wordItem";
+  div.innerHTML = `
+    <span>${w.romaji} (${w.hiragana} / ${w.katakana}) = ${w.en}</span>
+    <span>
+      <i class="fas fa-volume-up" title="Listen" onclick="pronounceWord(${index})"></i>
+      <i class="fas fa-edit" title="Edit" onclick="editWord(${index})"></i>
+      <i class="fas fa-trash-alt" title="Remove" onclick="removeWord(${index})"></i>
+    </span>
+  `;
+  listDiv.appendChild(div);
+});
+
+
+  }
+  saveToLocalStorage();
+}
+
+// Save vocab array to localStorage
+function saveToLocalStorage() {
+  localStorage.setItem("vocab", JSON.stringify(vocab));
+}
+
+function addWord() {
+  const romajiInput = document.getElementById("romaji").value.trim();
+  const englishInput = document.getElementById("english").value.trim();
+  if(!romajiInput || !englishInput){ alert("Please enter both Romaji and English!"); return; }
+
+  const romajiArr = romajiInput.split(",").map(w=>w.trim()).filter(w=>w!=="");
+  const englishArr = englishInput.split(",").map(w=>w.trim()).filter(w=>w!=="");
+
+  if(romajiArr.length !== englishArr.length){ alert("Number of Romaji and English words must match!"); return; }
+
+  for(let i=0;i<romajiArr.length;i++){
+    const hira = romajiToHiragana(romajiArr[i]);
+    const kata = hiraganaToKatakana(hira);
+
+    const exists = vocab.some(w => w.romaji.toLowerCase()===romajiArr[i].toLowerCase() && w.en.toLowerCase()===englishArr[i].toLowerCase());
+    if(exists){ alert(`"${romajiArr[i]} = ${englishArr[i]}" is already in the word list!`); continue; }
+
+    vocab.push({romaji: romajiArr[i], hiragana:hira, katakana:kata, en:englishArr[i]});
+  }
+
+  document.getElementById("romaji").value="";
+  document.getElementById("english").value="";
+  
+  renderWordList();
+  document.getElementById("romaji").focus();
+}
+
+document.getElementById("romaji").addEventListener("keypress", function(e) {
+  if(e.key === "Enter") addWord();
+});
+
+document.getElementById("english").addEventListener("keypress", function(e) {
+  if(e.key === "Enter") addWord();
+});
+
+function editWord(index){
+  const newRomaji = prompt("Edit Romaji:", vocab[index].romaji);
+  const newEnglish = prompt("Edit English:", vocab[index].en);
+  if(newRomaji && newEnglish){
+    vocab[index] = {romaji: newRomaji.trim(), en: newEnglish.trim()};
+    renderWordList();
+  }
+}
+
+function removeWord(index){
+  vocab.splice(index,1);
+  renderWordList();
+}
+
+function updateTimerDisplay(){
+  let minutes = Math.floor(secondsElapsed / 60);
+  let seconds = secondsElapsed % 60;
+  let formatted = 
+      (minutes < 10 ? '0' + minutes : minutes) + ':' + 
+      (seconds < 10 ? '0' + seconds : seconds);
+  document.getElementById("timer").textContent = `Time: ${formatted}`;
+}
+
+
+// Quiz functions remain the same
+function startQuiz(){
+  if(vocab.length === 0){
+    alert("Please add at least one word!");
+    return;
+  }
+  document.getElementById("addWords").style.display="none";
+  document.getElementById("info").style.display="none";
+  document.getElementById("quizSection").style.display="block";
+  
+  score = 0; 
+  total = 0; 
+  wrongAnswers = [];
+  secondsElapsed = 0; // reset
+  updateScore();
+  updateTimerDisplay();
+
+  // Start timer
+  timerInterval = setInterval(() => {
+    secondsElapsed++;
+    updateTimerDisplay();
+  }, 1000);
+
+  nextWord();
+}
+
+
+let currentQuestionText = ""; // Japanese word to pronounce
+let currentQuestionType = ""; // To track question type
+
+function nextWord(){
+  if(vocab.length === 0) return;
+
+  const randomIndex = Math.floor(Math.random() * vocab.length);
+  currentWord = vocab[randomIndex];
+
+  // 6 types of questions
+  // 0 = EN→Romaji, 1 = Romaji→EN, 2 = Hiragana→EN, 3 = Katakana→EN, 4 = Hiragana→Romaji, 5 = Katakana→Romaji
+  const type = Math.floor(Math.random() * 6);
+  let questionText = "";
+  currentQuestionText = ""; // reset
+  currentQuestionType = type;
+
+  if(type === 0){
+    questionText = `Translate to Romaji: ${currentWord.en}`;
+  } else if(type === 1){
+    questionText = `Translate to English: ${currentWord.romaji}`;
+  } else if(type === 2){
+    questionText = `Translate to English: ${currentWord.hiragana}`;
+    currentQuestionText = currentWord.hiragana;
+  } else if(type === 3){
+    questionText = `Translate to English: ${currentWord.katakana}`;
+    currentQuestionText = currentWord.katakana;
+  } else if(type === 4){
+    questionText = `Translate to Romaji: ${currentWord.hiragana}`;
+    currentQuestionText = currentWord.hiragana;
+  } else if(type === 5){
+    questionText = `Translate to Romaji: ${currentWord.katakana}`;
+    currentQuestionText = currentWord.katakana;
+  }
+
+  document.getElementById("question").textContent = questionText;
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("answer").focus();
+
+  // Show speaker icon only if Japanese word involved
+  if(currentQuestionText){
+    document.getElementById("playQuestion").style.display = "inline-block";
+    // Automatically pronounce
+    const utterance = new SpeechSynthesisUtterance(currentQuestionText);
+    utterance.lang = "ja-JP";
+    window.speechSynthesis.speak(utterance);
+  } else {
+    document.getElementById("playQuestion").style.display = "none";
+  }
+}
+
+
+function checkAnswer(){
+  
+  const userAnswer = document.getElementById("answer").value.trim().toLowerCase();
+  const qText = document.getElementById("question").textContent;
+
+  let correctAnswer;
+  if(qText.includes("Romaji")) correctAnswer = currentWord.romaji.toLowerCase();
+  else correctAnswer = currentWord.en.toLowerCase();
+
+  total++;
+  if(userAnswer === correctAnswer){
+    score++;
+    document.getElementById("feedback").textContent="✅ Correct!";
+  } else {
+    document.getElementById("feedback").textContent=`❌ Wrong! Correct: ${correctAnswer}`;
+let questionWord = "";
+if(currentQuestionType === 0) questionWord = currentWord.en;
+else if(currentQuestionType === 1) questionWord = currentWord.romaji;
+else if(currentQuestionType === 2) questionWord = currentWord.hiragana;
+else if(currentQuestionType === 3) questionWord = currentWord.katakana;
+else if(currentQuestionType === 4) questionWord = currentWord.hiragana;
+else if(currentQuestionType === 5) questionWord = currentWord.katakana;
+
+    wrongAnswers.push({
+  question:qText,
+  type: currentQuestionType, // save type number
+  questionWord: questionWord,
+  yourAnswer: userAnswer,
+  correctAnswer: correctAnswer
+});
+
+  }
+  
+
+  updateScore();
+  setTimeout(nextWord,1200);
+}
+
+function updateScore(){
+  document.getElementById("score").textContent=`Score: ${score} / ${total}`;
+}
+
+function endPractice(){
+  clearInterval(timerInterval); // stop the timer
+
+  document.getElementById("quizSection").style.display="none";
+  document.getElementById("result").style.display="block";
+  document.getElementById("finalScore").textContent=`Final Score: ${score} / ${total}`;
+
+  // Show total time
+  let minutes = Math.floor(secondsElapsed / 60);
+  let seconds = secondsElapsed % 60;
+  let formatted = 
+      (minutes < 10 ? '0' + minutes : minutes) + ':' + 
+      (seconds < 10 ? '0' + seconds : seconds);
+  document.getElementById("resultTimer").textContent=`Total Time: ${formatted}`;
+
+  const tbody = document.querySelector("#wrongTable tbody");
+  tbody.innerHTML = "";
+
+  if(wrongAnswers.length === 0){
+  document.getElementById("allcorrect").style.display="block";
+  document.getElementById("wrongss").style.display="none";
+    document.getElementById("allcorrect").textContent=`All correct! 🎉`;  
+  } else {
+    document.getElementById("wrongss").style.display="block";
+  document.getElementById("allcorrect").style.display="none";
+    wrongAnswers.forEach(w=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${questionTypeMap[w.type]}</td>
+        <td>${w.questionWord}</td>
+        <td>${w.yourAnswer}</td>
+        <td>${w.correctAnswer}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+
+function restart(){
+  document.getElementById("result").style.display="none";
+  document.getElementById("addWords").style.display="block";
+  document.getElementById("info").style.display="block";
+  renderWordList();
+}
+
+// Submit answer on Enter key
+document.getElementById("answer").addEventListener("keypress", function(e){
+  if(e.key==="Enter"){ checkAnswer(); }
+});
+
+// Initial render from localStorage
+renderWordList();
+</script>
+
+</body>
+</html>
